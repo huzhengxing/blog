@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>MySql备份方式</title>
+    <url>/2019/11/16/MySql%E5%A4%87%E4%BB%BD%E5%A4%84%E7%90%86/</url>
+    <content><![CDATA[<h1 id="1-Windows-server定时备份"><a href="#1-Windows-server定时备份" class="headerlink" title="1. Windows server定时备份"></a>1. Windows server定时备份</h1><ol>
+<li>创建bat文件</li>
+</ol><p><img src="http://oss.huzhengxing.com/2019-11-18-020435.png" alt="image-20191118100435160"></p><ol start="2">
+<li>编辑bat文件,加入执行脚本    </li>
+</ol><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">@echo off</span><br><span class="line">set "Ymd=%date:~,4%%date:~5,2%%date:~8,2%"["C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqldump"] --opt -u [root] --password=[123456] [dbname] &gt; C:\mysql_backup\[dbname]_%Ymd%.sql</span><br><span class="line">@echo on</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+
+<p>​    []里面都是需要按照个人修改</p>
+<ul>
+<li><p>“C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqldump”</p>
+<p>按照MySql的mysqldump文件所在位置</p>
+</li>
+<li><p>root</p>
+<p>用户名</p>
+</li>
+<li><p>123456</p>
+<p>密码</p>
+</li>
+<li><p>dbname</p>
+<p>数据库名称</p>
+<p>配置好后直接保存，点击运行，如果生成一个sql文件。那就成功了</p>
+</li>
+</ul>
+<ol start="3">
+<li>添加window任务计划，执行该脚本。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>MySql</category>
+      </categories>
+      <tags>
+        <tag>MySql</tag>
+        <tag>备份</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>一次数据的误删除</title>
+    <url>/2019/11/16/%E4%B8%80%E6%AC%A1%E6%95%B0%E6%8D%AE%E7%9A%84%E8%AF%AF%E5%88%A0%E9%99%A4/</url>
+    <content><![CDATA[<h1 id="1-场景"><a href="#1-场景" class="headerlink" title="1. 场景"></a>1. 场景</h1><p>​    今天在把测试数据库的表更新到正式数据库时，因为直接用了navicat，所以就直接把表复制过去，非常方便。但是，同时也把测试数据库里面的数据复制到了正式数据库，没办法只能手动删除。好了，精彩时刻来了，由于两个表名字有点相似，居然删错表里面的数据，一个是canteen_recharge_record，我新添加的库是canteen_subscribe_record，一个单词之差，看走眼了。直接把canteen_recharge_record里面的数据全删了。瞬间头皮发麻。</p><a id="more"></a>
+<p>​    </p>
+<h1 id="2-解决过程"><a href="#2-解决过程" class="headerlink" title="2.  解决过程"></a>2.  解决过程</h1><p>​    第一反应，就是去数据库查看备份的数据，虽然只有一天一次备份。起码还可以把今天之前的数据能找回来。一打开备份的文件夹，一脸懵逼，从9月29号之后。数据库居然没有备份了，都是1KB。我了个去。什么情况？再仔细一想，由于公司人员增加，之前就是有人乱改了数据库，所以现在统一把账号，密码修改了，分为正式的和测试，然而，备份配置的账号密码，还是之前的，瞬间完蛋。</p>
+<p>​    没办法，那就只能直接百度，Google，一顿搜索，各种尝试。结果就是，针对于MySql恢复数据,基本上就是通过备份，或者通过binlog，这两个我都没有。之间还在淘宝搜索，还真有恢复的。找了一家打电话联系后说了一下情况，直接说，无法恢复。</p>
+<p>​    一个喜欢贼习惯看吾爱破解的同事，想出了一个办法。说通过恢复文件的方式，因为数据库数据最终还是保存在本地磁盘，可以通过文件恢复，感觉还是有点道理。一顿操作后，发现都是需要花钱的恢复文件，而且一般的恢复文件都是恢复删除的文件，我们在本地数据库测试的时候发现，删除表的数据库，只是修改了文件，并没有删除。除非能让数据回滚到某一个时间段。</p>
+<p>​    因为我们是用的阿里云服务器，所以想到了阿里快照，因为我们之前服务器被黑过，所以了解到了云服务器的快照。登录阿里云之后，发现就是上次快照了一次，尴尬。</p>
+<p>​    事到至此，只能先和客户那边沟通。沟通之后，发现这部分的数据不是特别重要，只是充值记录。偶尔为了，确认一下比人充值了没，才会去看下。瞬间安心了好多。    </p>
+<p>​    但是，部分数据库还是得找回来。只能用一个死办法了，通过日志来找回数据库。花花的好几个G的日志文件。</p>
+<p>​    哎，真的是手贱，太粗心了。</p>
+<h1 id="3-吸取教训"><a href="#3-吸取教训" class="headerlink" title="3.  吸取教训"></a>3.  吸取教训</h1><ol>
+<li><p>数据库的备份做好，而且确保能用，最好能偶尔查看一下。这里的备份中间出问题，就是，没去看是否备份成功。</p>
+</li>
+<li><p>服务器做好快照，不仅是数据库的问题，服务器也是一样，万一不小心输入了rm rf /*,那是真的GG了</p>
+</li>
+<li><p>操作正式数据库之前，一定得手动备份一次。以免误操作数据。</p>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>个人经历</category>
+      </categories>
+      <tags>
+        <tag>MySql</tag>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Git使用命令</title>
+    <url>/2019/11/14/Git%E4%BD%BF%E7%94%A8%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<p>Git相关的操作命令</p><h2 id="1-下载代码"><a href="#1-下载代码" class="headerlink" title="1. 下载代码"></a>1. 下载代码</h2><p>github代码下载到本地。</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/huzhengxing/spring-cloud-demo.git</span><br></pre></td></tr></table></figure><h2 id="2-拉取代码"><a href="#2-拉取代码" class="headerlink" title="2. 拉取代码"></a>2. 拉取代码</h2><p>远程仓库代码，更新到本地。</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git pull</span><br></pre></td></tr></table></figure><h2 id="3-上传代码"><a href="#3-上传代码" class="headerlink" title="3. 上传代码"></a>3. 上传代码</h2><p>本地已经git commit文件上传的远程仓库。(先git pull,再git push)</p><a id="more"></a>
+
+
+
+
+
+
+
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git push</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-提交代码本地"><a href="#4-提交代码本地" class="headerlink" title="4. 提交代码本地"></a>4. 提交代码本地</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git commit -m "备注"</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="5-查看本地提交的代码"><a href="#5-查看本地提交的代码" class="headerlink" title="5. 查看本地提交的代码"></a>5. 查看本地提交的代码</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git status</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="6-删除本地仓库代码"><a href="#6-删除本地仓库代码" class="headerlink" title="6. 删除本地仓库代码"></a>6. 删除本地仓库代码</h2><p>已经git commit 的文件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git rm -r --cached [fileName]</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="7-查看分支"><a href="#7-查看分支" class="headerlink" title="7. 查看分支"></a>7. 查看分支</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git branch</span><br></pre></td></tr></table></figure>
+
+<h2 id="8-创建分支"><a href="#8-创建分支" class="headerlink" title="8. 创建分支"></a>8. 创建分支</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git branch [branchName]</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h2 id="9-添加远程仓库"><a href="#9-添加远程仓库" class="headerlink" title="9. 添加远程仓库"></a>9. 添加远程仓库</h2><p>远程已经创建仓库,本地代码同步到远程仓库。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git remote add origin [远程地址]</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="10-添加远程分支"><a href="#10-添加远程分支" class="headerlink" title="10. 添加远程分支"></a>10. 添加远程分支</h2><p>本地代码同步到远程仓库，添加分支，才能提交上传代码。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git pull origin master</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Git</category>
+      </categories>
+      <tags>
+        <tag>Git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Springboot整合Websocket</title>
+    <url>/2019/11/13/Springboot%E6%95%B4%E5%90%88Websocket/</url>
+    <content><![CDATA[<p>springboot整合websocket,实现即使通讯的一对一单聊。</p><h1 id="1-导入相关依赖"><a href="#1-导入相关依赖" class="headerlink" title="1. 导入相关依赖"></a>1. 导入相关依赖</h1><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>8.0.11<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>tk.mybatis<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mapper-spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.komlin<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>common<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--swagger2--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.springfox<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>springfox-swagger2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.9.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.swagger<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>swagger-annotations<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.swagger<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>swagger-models<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.springfox<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>springfox-swagger-ui<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.7.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.swagger<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>swagger-annotations<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.21<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.swagger<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>swagger-models<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.21<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">   	<span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-websocket<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.17.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-lang<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-lang<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+
+<p>这里用的是1.5.17.RELEASE版本的websocket,之前用了2.0.4RELEASE版本存在问题</p>
+<h1 id="2-配置ServerEndpoint注入Spring"><a href="#2-配置ServerEndpoint注入Spring" class="headerlink" title="2. 配置ServerEndpoint注入Spring"></a>2. 配置ServerEndpoint注入Spring</h1><p>将ServerEndpointExporter类注入到spring容器,处理@ServerEndpoint注解的实现类</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WSConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ServerEndpointExporter <span class="title">serverEndpointExporter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ServerEndpointExporter();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="3-实现类"><a href="#3-实现类" class="headerlink" title="3. 实现类"></a>3. 实现类</h1><p>这里可以处理我们需要的逻辑,这里简单的实现了一个一对一单聊</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ServerEndpoint</span>(value = <span class="string">"/websocket/&#123;userId&#125;"</span>)</span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WSController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> ConcurrentHashMap&lt;String, Session&gt; onlineUsers = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 开始连接时，调用</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> session</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> userId</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnOpen</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onOpen</span><span class="params">(Session session, @PathParam(<span class="string">"userId"</span>)</span> String userId) </span>&#123;</span><br><span class="line">        log.info(<span class="string">"进入:&#123;&#125;"</span>,<span class="string">"onOpen"</span>);</span><br><span class="line">        log.info(<span class="string">"userId:&#123;&#125;"</span>,userId);</span><br><span class="line">        <span class="keyword">if</span> (onlineUsers.get(userId) != <span class="keyword">null</span> ) &#123;</span><br><span class="line">            sendMessage(session,<span class="string">"您已经在线!"</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        onlineUsers.put(userId,session);</span><br><span class="line">        printOnlineUserSize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关闭连接时调用</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> session</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnClose</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClose</span><span class="params">(Session session)</span> </span>&#123;</span><br><span class="line">        onlineUsers.forEach((k,v) -&gt; &#123;</span><br><span class="line">            <span class="keyword">if</span> (v.getId().equals(session.getId())) &#123;</span><br><span class="line">                log.info(<span class="string">"有人下线了:&#123;&#125;"</span>,k);</span><br><span class="line">                onlineUsers.remove(k);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        printOnlineUserSize();</span><br><span class="line">        log.info(<span class="string">"进入:&#123;&#125;"</span>,<span class="string">"onClose"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 接收客户端的消息</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> session</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> message</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnMessage</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onMessage</span><span class="params">(Session session,String message)</span> </span>&#123;</span><br><span class="line">        log.info(<span class="string">"进入:&#123;&#125;"</span>,<span class="string">"onMessage"</span>);</span><br><span class="line">        log.info(<span class="string">"message:&#123;&#125;"</span>,message);</span><br><span class="line">        Message messageObject = JsonUtils.jsonToPojo(message, Message<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">        Session sessionOfFriend = onlineUsers.get(messageObject.getFriendUserId());</span><br><span class="line">        <span class="keyword">if</span> (sessionOfFriend != <span class="keyword">null</span>) &#123;</span><br><span class="line">            sendMessage(sessionOfFriend,messageObject.getText());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 报错时调用</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> session</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> throwable</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnError</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onError</span><span class="params">(Session session,Throwable throwable)</span> </span>&#123;</span><br><span class="line">        log.info(<span class="string">"进入:&#123;&#125;"</span>,<span class="string">"onError"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 向客服端发送消息</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> session</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> message</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(Session session,String message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            session.getBasicRemote().sendText(message);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">printOnlineUserSize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        log.info(<span class="string">"当前在线人数:&#123;&#125;"</span>,onlineUsers.size());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>IM</category>
+      </categories>
+      <tags>
+        <tag>springboot</tag>
+        <tag>websocket</tag>
+        <tag>im</tag>
+      </tags>
+  </entry>
+</search>
