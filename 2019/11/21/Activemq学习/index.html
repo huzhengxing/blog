@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="ahmRzeUJLghsNzot5MjksKYUf3q13FtOALaIyoUG69E">
+  <meta name="baidu-site-verification" content="TZrI09FYvF">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://www.huzhengxing.com').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":true,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="1. 什么是Activemq1.1 什么是mq维基百科：  在计算机科学中，消息队列（英语：Message queue）是一种进程间通信或同一进程的不同线程间的通信方式，软件的贮列用来处理一系列的输入，通常是来自用户。消息队列提供了异步的通信协议，每一个贮列中的纪录包含详细说明的数据，包含发生的时间，输入设备的种类，以及特定的输入参数，也就是说：消息的发送者和接收者不需要同时与消息队列交互。消息会">
+<meta name="keywords" content="Activemq,消息队列,mq">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Activemq">
+<meta property="og:url" content="https:&#x2F;&#x2F;www.huzhengxing.com&#x2F;2019&#x2F;11&#x2F;21&#x2F;Activemq%E5%AD%A6%E4%B9%A0&#x2F;index.html">
+<meta property="og:site_name" content="爱折腾的Albert">
+<meta property="og:description" content="1. 什么是Activemq1.1 什么是mq维基百科：  在计算机科学中，消息队列（英语：Message queue）是一种进程间通信或同一进程的不同线程间的通信方式，软件的贮列用来处理一系列的输入，通常是来自用户。消息队列提供了异步的通信协议，每一个贮列中的纪录包含详细说明的数据，包含发生的时间，输入设备的种类，以及特定的输入参数，也就是说：消息的发送者和接收者不需要同时与消息队列交互。消息会">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http:&#x2F;&#x2F;oss.huzhengxing.com&#x2F;2019-11-21-090428.png">
+<meta property="og:image" content="http:&#x2F;&#x2F;oss.huzhengxing.com&#x2F;2019-11-21-114219.png">
+<meta property="og:image" content="http:&#x2F;&#x2F;oss.huzhengxing.com&#x2F;2019-11-21-114057.png">
+<meta property="og:image" content="http:&#x2F;&#x2F;oss.huzhengxing.com&#x2F;2019-11-21-094041.png">
+<meta property="og:updated_time" content="2019-12-14T07:52:31.654Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;oss.huzhengxing.com&#x2F;2019-11-21-090428.png">
+
+<link rel="canonical" href="https://www.huzhengxing.com/2019/11/21/Activemq%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Activemq | 爱折腾的Albert</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="爱折腾的Albert" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">爱折腾的Albert</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/huzhengxing" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.huzhengxing.com/2019/11/21/Activemq%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Albert">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="爱折腾的Albert">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          Activemq
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-21 20:08:48" itemprop="dateCreated datePublished" datetime="2019-11-21T20:08:48+08:00">2019-11-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2019-12-14 15:52:31" itemprop="dateModified" datetime="2019-12-14T15:52:31+08:00">2019-12-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Activemq/" itemprop="url" rel="index">
+                    <span itemprop="name">Activemq</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2019/11/21/Activemq%E5%AD%A6%E4%B9%A0/" class="post-meta-item leancloud_visitors" data-flag-title="Activemq" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2019/11/21/Activemq%E5%AD%A6%E4%B9%A0/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/21/Activemq%E5%AD%A6%E4%B9%A0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="1-什么是Activemq"><a href="#1-什么是Activemq" class="headerlink" title="1. 什么是Activemq"></a>1. 什么是Activemq</h1><h2 id="1-1-什么是mq"><a href="#1-1-什么是mq" class="headerlink" title="1.1 什么是mq"></a>1.1 什么是mq</h2><p>维基百科：</p>
+<blockquote>
+<p>在<a href="https://zh.wikipedia.org/wiki/计算机科学" target="_blank" rel="noopener">计算机科学</a>中，<strong>消息队列</strong>（英语：Message queue）是一种<a href="https://zh.wikipedia.org/wiki/进程间通信" target="_blank" rel="noopener">进程间通信</a>或同一进程的不同<a href="https://zh.wikipedia.org/wiki/线程" target="_blank" rel="noopener">线程</a>间的通信方式，<a href="https://zh.wikipedia.org/wiki/軟體" target="_blank" rel="noopener">软件</a>的<a href="https://zh.wikipedia.org/wiki/貯列" target="_blank" rel="noopener">贮列</a>用来处理一系列的<a href="https://zh.wikipedia.org/w/index.php?title=輸入&action=edit&redlink=1" target="_blank" rel="noopener">输入</a>，通常是来自用户。消息队列提供了<a href="https://zh.wikipedia.org/wiki/異步" target="_blank" rel="noopener">异步</a>的<a href="https://zh.wikipedia.org/wiki/通信协议" target="_blank" rel="noopener">通信协议</a>，每一个贮列中的纪录包含详细说明的数据，包含发生的时间，输入设备的种类，以及特定的输入参数，也就是说：消息的发送者和接收者不需要同时与消息队列交互。消息会保存在<a href="https://zh.wikipedia.org/wiki/队列" target="_blank" rel="noopener">队列</a>中，直到接收者取回它。</p>
+</blockquote>
+<p>消息的发送者和接收者不需要同时与消息队列交互。消息会保存在<a href="https://zh.wikipedia.org/wiki/队列" target="_blank" rel="noopener">队列</a>中，直到接收者取回它。这句话把消息队列说明的很清楚。顾名思义就是保存消息的队列。</p>
+<p><img src="http://oss.huzhengxing.com/2019-11-21-090428.png" alt="图片"></p>
+<h2 id="1-2-消息模型"><a href="#1-2-消息模型" class="headerlink" title="1.2 消息模型"></a>1.2 消息模型</h2><ul>
+<li><p>P2P(Point-to-Point)</p>
+<p>点对点模式，就是生产者发布的消息，只能被一个消费者消费。</p>
+<p><img src="http://oss.huzhengxing.com/2019-11-21-114219.png" alt="image-20191121194219437"></p>
+<p>​    Producer发布一条消息，ConsumerA和ConsumerB只能有一个能接收消息，消息在队列中被消费掉，就没有了。</p>
+</li>
+</ul>
+<ul>
+<li><p>Pub/Sub(Publish/Subscribe)</p>
+<p>发布订阅模式，生产者发布的消息，可以被所有的消费者消费。</p>
+<p><img src="http://oss.huzhengxing.com/2019-11-21-114057.png" alt="image-20191121194056624"></p>
+<p>Producer发布一条消息,ConsumerA和ConsumerB都能接收到消息。</p>
+</li>
+</ul>
+<h2 id="1-2-什么是Activemq"><a href="#1-2-什么是Activemq" class="headerlink" title="1.2 什么是Activemq"></a>1.2 什么是Activemq</h2><blockquote>
+<p><strong>Apache ActiveMQ</strong>是<a href="https://zh.wikipedia.org/wiki/Apache軟件基金會" target="_blank" rel="noopener">Apache软件基金会</a>所研发的开放源码<a href="https://zh.wikipedia.org/w/index.php?title=消息中間件&action=edit&redlink=1" target="_blank" rel="noopener">消息中间件</a>；由于ActiveMQ是一个纯<a href="https://zh.wikipedia.org/wiki/Java" target="_blank" rel="noopener">Java</a>程序，因此只需要<a href="https://zh.wikipedia.org/wiki/作業系統" target="_blank" rel="noopener">操作系统</a>支持<a href="https://zh.wikipedia.org/wiki/Java虛擬機" target="_blank" rel="noopener">Java虚拟机</a>，ActiveMQ便可执行。</p>
+</blockquote>
+<h1 id="2-为什么使用Activemq"><a href="#2-为什么使用Activemq" class="headerlink" title="2. 为什么使用Activemq"></a>2. 为什么使用Activemq</h1><p>mq的优点有很多，能觉得很多问题。下面是我使用中解决的一些问题</p>
+<h2 id="2-1-数据同步"><a href="#2-1-数据同步" class="headerlink" title="2.1 数据同步"></a>2.1 数据同步</h2><p>在我们日常开发中，经常会对接到其他的公司。比如用户信息的同步，总不能别人的用户信息修改了，我们这里还是用之前的。这样肯定会出问题的。</p>
+<p>解决方案</p>
+<ul>
+<li><p>定时任务</p>
+<p>定时查询变更数据,这样的缺点就是，数据不能实时同步。除非间隔时间很短，那也太吃服务性能了。</p>
+</li>
+<li><p>通过mq</p>
+<p>每次变更数据时，发布到消息队列，让别人来订阅，这样别人可以实时的更新数据。</p>
+</li>
+</ul>
+<h2 id="2-2-异步处理请求"><a href="#2-2-异步处理请求" class="headerlink" title="2.2 异步处理请求"></a>2.2 异步处理请求</h2><p>直接用一个用户短信登录例子来说明</p>
+<p><img src="http://oss.huzhengxing.com/2019-11-21-094041.png" alt="image-20191121174041358"></p>
+<p>一般发短信，通常都是调用第三方服务。如果使用同步请求的方式，那样会很慢。所以可以通过消息队列，把需要发送的消息放到队列里，异步的处理。这样接口的响应就会很快。</p>
+<h1 id="3-怎么使用Activemq"><a href="#3-怎么使用Activemq" class="headerlink" title="3. 怎么使用Activemq"></a>3. 怎么使用Activemq</h1><ul>
+<li><a href="https://www.huzhengxing.com/2019/11/21/Springboot+Activemq/">Springboot + Activemq</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Activemq/" rel="tag"># Activemq</a>
+              <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag"># 消息队列</a>
+              <a href="/tags/mq/" rel="tag"># mq</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/21/Springboot+Activemq/" rel="prev" title="Springboot+Activemq">
+      <i class="fa fa-chevron-left"></i> Springboot+Activemq
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/22/%E7%BA%BF%E7%A8%8B%E5%AD%A6%E4%B9%A0/" rel="next" title="Java线程">
+      Java线程 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-什么是Activemq"><span class="nav-text">1. 什么是Activemq</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-什么是mq"><span class="nav-text">1.1 什么是mq</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-消息模型"><span class="nav-text">1.2 消息模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-什么是Activemq"><span class="nav-text">1.2 什么是Activemq</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-为什么使用Activemq"><span class="nav-text">2. 为什么使用Activemq</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-数据同步"><span class="nav-text">2.1 数据同步</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-异步处理请求"><span class="nav-text">2.2 异步处理请求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-怎么使用Activemq"><span class="nav-text">3. 怎么使用Activemq</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Albert</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/huzhengxing" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;huzhengxing" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/u/5508963074" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;u&#x2F;5508963074" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Albert</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  <script src="//cdn.jsdelivr.net/npm/quicklink@1/dist/quicklink.umd.js"></script>
+  <script>
+      window.addEventListener('load', () => {
+      quicklink({
+        timeout: 3000,
+        priority: true,
+        ignores: [uri => uri.includes('#'),uri => uri == 'https://www.huzhengxing.com/2019/11/21/Activemq%E5%AD%A6%E4%B9%A0/',]
+      });
+      });
+  </script>
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'jv6kanj6VN2aXzhYdvrWhV0n-gzGzoHsz',
+      appKey: 'amAVaNvlBTmVutHTjgOqxxO5',
+      placeholder: "欢迎评论...",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: 'zh-cn' || 'zh-cn',
+      path: location.pathname,
+      recordIP: true,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
